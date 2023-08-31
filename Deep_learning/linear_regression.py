@@ -13,7 +13,7 @@ def load_data():
     # print(firstdata.shape)  输出结果:(7084, )
     # print(firstdata.shape[0] // feature_nums)  输出结果:506
     # 构造506*14的二维数组
-    data = firstdata.reshape([firstdata.shape[0] // feature_num, feature_num])
+    data = firstdata.reshape([len(firstdata) // feature_num, feature_num])
 
 
     # 训练集设置为总数据的80%
