@@ -1,2 +1,2 @@
 # DeepLearning
-record of my deep_learning practice
+record of my deep_learning practices
