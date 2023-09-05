@@ -1,32 +1,34 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.metrics import r2_score
+import pandas as pd
 
 
 def load_data():
     # 读取以空格分开的文件，变成一个连续的数组
-    firstdata = np.fromfile('../housing.data', sep=' ')
-    # 添加属性
-    feature_names = ['CRIM', 'ZN', 'INDUS', 'CHAS', 'NOX', 'RM', 'AGE', 'DIS', 'RAD', 'TAX', 'PTRATIO', 'B', 'LSTAT',
-                     'MEDV']
-    # 列的长度
-    feature_num = len(feature_names)
-    # print(firstdata.shape)  输出结果:(7084, )
-    # print(firstdata.shape[0] // feature_nums)  输出结果:506
-    # 构造506*14的二维数组
-    data = firstdata.reshape([len(firstdata) // feature_num, feature_num])
+    # data = np.fromfile('../housing.data', sep=' ')
+    df = pd.read_csv('D:/MyDataSet/linear/Linear Regression.csv')
+    data = df.to_numpy()
 
+    feature_num = data.shape[1]
+    # len(feature_names)
+
+    # print(firstdata.shape[0] // feature_nums)  输出结果:506
+
+    # data = data.reshape([data.shape[0] // feature_num, feature_num])
 
     # 训练集设置为总数据的80%
     ratio = 0.8
     offset = int(data.shape[0] * ratio)
     training_data = data[:offset]
+
     # print(training_data.shape)
 
     # axis=0表示列
     # axis=1表示行
     # \表示换行，无需输入
     maximums, minimums, avgs = training_data.max(axis=0), training_data.min(axis=0), training_data.sum(axis=0) / \
-                               training_data.shape[0]
+                                                                                     training_data.shape[0]
     # 查看训练集每列的最大值、最小值、平均值
     # print(maximums, minimums, avgs)
 
@@ -99,7 +101,7 @@ class Network(object):
         self.b = self.b - eta * gradient_b
 
     # 迭代100次，每次移动0.01
-    def train(self, x, y, iterations=100, eta=0.01):
+    def train(self, x, y, iterations=1000, eta=0.01):
         losses = []
         for i in range(iterations):
             z = self.forward(x)
@@ -112,22 +114,48 @@ class Network(object):
                 print('iter {}, loss{}'.format(i, L))
         return losses
 
+    def performance_metric(self, y_true, y_predict):
+        score = r2_score(y_true, y_predict)
+        return score
+
 
 # 获取数据
 if __name__ == '__main__':
     training_data, test_data = load_data()
-    # 取训练集全部行的前13列
     x = training_data[:, :-1]
-    # 取训练集全部行的最后一列
     y = training_data[:, -1:]
-    # 创建网络
-    net = Network(13)
-    num_iterations = 1000
-    # 启动训练，迭代次数为1000，步长为0.01
-    losses = net.train(x, y, iterations=num_iterations, eta=0.01)
+    len_train_data = len(training_data)
+    len_test_data = len(test_data)
 
-    # 画出损失函数的变化趋势
+    net = Network(x.shape[1])
+    num_iterations = 5000
+
+    losses = net.train(x, y, iterations=num_iterations)
+
+    trained_w = net.w
+    trained_b = net.b
+    predictions = np.dot(test_data[:, :-1], trained_w) + trained_b
+    score = net.performance_metric(test_data[:, -1:], predictions)
+
+    print("模型得分:{}/100".format(round(score * 100, 2)))
+
+    dot_distant = len_test_data // 8
+    x = [test_data[i][0] for i in range(0, len_test_data, dot_distant)]
+    y_true = [test_data[i][1] for i in range(0, len_test_data, dot_distant)]
+    y_prediction = [predictions[i][0] for i in range(0, len(predictions), dot_distant)]
+
+    fig, axs = plt.subplots(1, 2)
+    axs[0].set_title('fit result plot')
+    axs[1].set_title('gradient descent plot ')
+
+    # 在第一个子图中绘制散点图和折线图
+    axs[0].scatter(x, y_true, color='red')
+    axs[0].plot(x, y_true, color='red')
+    axs[0].scatter(x, y_prediction, color='blue')
+    axs[0].plot(x, y_prediction, color='blue')
+
     plot_x = np.arange(num_iterations)
     plot_y = np.array(losses)
-    plt.plot(plot_x, plot_y)
+    axs[1].plot(plot_x, plot_y)
     plt.show()
+
