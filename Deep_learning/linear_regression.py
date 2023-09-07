@@ -7,7 +7,7 @@ import pandas as pd
 def load_data():
     # 读取以空格分开的文件，变成一个连续的数组
     # data = np.fromfile('../housing.data', sep=' ')
-    df = pd.read_csv('D:/MyDataSet/linear/Linear Regression.csv')
+    df = pd.read_csv('D:/MyDataSet/linear_regression/Linear Regression.csv')
     data = df.to_numpy()
 
     feature_num = data.shape[1]
@@ -49,7 +49,7 @@ class Network(object):
     def __init__(self, num_of_weights):
         # 随即产生w的初始值
         # seed(0)表示设置了随机种子，保证程序每次运行结果的一致性
-        np.random.seed(0)
+        np.random.seed(42)
         # self.w的结构为num_of_weights行，1列
         self.w = np.random.randn(num_of_weights, 1)
         # b初始化为0
@@ -90,6 +90,9 @@ class Network(object):
         # b为一个数值，不需要再增加维度
         gradient_b = np.mean(gradient_b)
         return gradient_w, gradient_b
+
+
+
 
     # 确定损失函数更小的点
     # 更新梯度
