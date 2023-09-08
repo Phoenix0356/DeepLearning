@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import r2_score
 import pandas as pd
+import util
 
 
 def load_data():
@@ -36,7 +37,7 @@ def load_data():
     for i in range(feature_num):
         # print(maximums[i], minimums[i], avgs[i])
         # 归一化，减去平均值是为了移除共同部分，凸显个体差异
-        data[:, i] = (data[:, i] - avgs[i]) / (maximums[i] - minimums[i])
+        data[:, i] = (data[:, i] - minimums[i]) / (maximums[i] - minimums[i])
 
     # 覆盖上面的训练集
     training_data = data[:offset]
@@ -127,8 +128,7 @@ if __name__ == '__main__':
     training_data, test_data = load_data()
     x = training_data[:, :-1]
     y = training_data[:, -1:]
-    len_train_data = len(training_data)
-    len_test_data = len(test_data)
+
 
     net = Network(x.shape[1])
     num_iterations = 5000
@@ -137,28 +137,12 @@ if __name__ == '__main__':
 
     trained_w = net.w
     trained_b = net.b
-    predictions = np.dot(test_data[:, :-1], trained_w) + trained_b
+    predictions = net.forward(test_data[:,:-1])
     score = net.performance_metric(test_data[:, -1:], predictions)
 
     print("模型得分:{}/100".format(round(score * 100, 2)))
 
-    dot_distant = len_test_data // 8
-    x = [test_data[i][0] for i in range(0, len_test_data, dot_distant)]
-    y_true = [test_data[i][1] for i in range(0, len_test_data, dot_distant)]
-    y_prediction = [predictions[i][0] for i in range(0, len(predictions), dot_distant)]
+    util.draw_plot(test_data,predictions,10,losses)
 
-    fig, axs = plt.subplots(1, 2)
-    axs[0].set_title('fit result plot')
-    axs[1].set_title('gradient descent plot ')
 
-    # 在第一个子图中绘制散点图和折线图
-    axs[0].scatter(x, y_true, color='red')
-    axs[0].plot(x, y_true, color='red')
-    axs[0].scatter(x, y_prediction, color='blue')
-    axs[0].plot(x, y_prediction, color='blue')
-
-    plot_x = np.arange(num_iterations)
-    plot_y = np.array(losses)
-    axs[1].plot(plot_x, plot_y)
-    plt.show()
 

@@ -1,21 +1,23 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import util
 
 
 
-def gender_converter(gender):
-    if gender == 'Male':
-        return 1
-    elif gender == 'Female':
-        return 0
+# def gender_converter(gender):
+#     if gender == 'Male':
+#         return 1
+#     elif gender == 'Female':
+#         return 0
 
 
 def load_data():
-    df = pd.read_csv('D:/MyDataSet/logistic_regression/Social_Network_Ads.csv',
-                     converters={'Gender': gender_converter},
+    #Social_Network_Ads.csv
+    df = pd.read_csv('D:/MyDataSet/logistic_regression/framingham.csv',
+                     #converters={'Gender': gender_converter},
                      dtype=np.float32)
-    df = df.iloc[:, 1:]
+    #df = df.iloc[:, 1:]
     df = df.dropna()
     data = df.to_numpy()
 
@@ -36,7 +38,7 @@ def load_data():
 
 class Network(object):
     def __init__(self, num_of_weights):
-        np.random.seed(0)
+        np.random.seed(42)
         self.w = np.random.randn(num_of_weights, 1)
         self.b = 0
 
@@ -83,24 +85,21 @@ if __name__ == '__main__':
     train_set, test_set = load_data()
     x=train_set[:,:-1]
     y=train_set[:,-1:]
+
     net=Network(x.shape[1])
     num_iterations=10000
-    losses=net.train(x,y,num_iterations,0.05)
 
-    trained_w=net.w
-    trained_b=net.b
+    losses=net.train(x,y,num_iterations,0.08)
 
-    predictions = np.dot(test_set[:, :-1],trained_w) + trained_b
+    predictions = net.forward(test_set[:,:-1])
     threshold = 0.5
     predictions_binary = np.where(predictions >= threshold, 1, 0)
-    print(predictions)
+    #print(predictions_binary)
 
     accuracy = np.mean(predictions_binary == test_set[:, -1])
     print('准确率: {:.2f}%'.format(accuracy * 100))
+    util.draw_plot(test_set,predictions_binary,10,losses)
 
-    plot_x = np.arange(num_iterations)
-    plot_y = np.array(losses)
-    plt.plot(plot_x,plot_y)
-    plt.show()
+
 
 
