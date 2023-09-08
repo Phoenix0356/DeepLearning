@@ -99,7 +99,7 @@ if __name__ == '__main__':
     accuracy = np.mean(predictions_binary == test_set[:, -1])
     print('准确率: {:.2f}%'.format(accuracy * 100))
 
-    util.draw_plot(test_set,predictions_binary,10,losses)
+    util.draw_plot(test_set,predictions_binary,8,losses)
 
 
 

@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 def draw_plot(test_data,predictions,dot_num,losses):
-    len_data=len(test_data)//10*10
+    len_data=len(test_data)//dot_num*dot_num
     dot_distant = len_data // dot_num
     x = list(range(0,dot_num))
     y_true = [test_data[i][-1] for i in range(0, len_data, dot_distant)]
