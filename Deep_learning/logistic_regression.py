@@ -38,7 +38,7 @@ def load_data():
 
 class Network(object):
     def __init__(self, num_of_weights):
-        np.random.seed(42)
+        np.random.seed(0)
         self.w = np.random.randn(num_of_weights, 1)
         self.b = 0
 
@@ -99,7 +99,7 @@ if __name__ == '__main__':
     accuracy = np.mean(predictions_binary == test_set[:, -1])
     print('准确率: {:.2f}%'.format(accuracy * 100))
 
-    util.draw_plot(test_set,predictions_binary,8,losses)
+    util.draw_plot(test_set,predictions_binary,30,losses)
 
 
 

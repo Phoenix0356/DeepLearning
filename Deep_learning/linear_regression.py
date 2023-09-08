@@ -134,9 +134,6 @@ if __name__ == '__main__':
     num_iterations = 5000
 
     losses = net.train(x, y, iterations=num_iterations)
-
-    trained_w = net.w
-    trained_b = net.b
     predictions = net.forward(test_data[:,:-1])
     score = net.performance_metric(test_data[:, -1:], predictions)
 
