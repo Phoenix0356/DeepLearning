@@ -1,10 +1,13 @@
-#import os
-#print(os.getcwd())
+# import os
+# print(os.getcwd())
 import os
 import gzip
 import numpy as np
+
 import matplotlib.pyplot as plt
-def load_mnist(path,data_scale, kind='train'):
+
+
+def load_mnist(path, data_scale, train_ratio, kind='train'):
     """Load MNIST data from `path`"""
     labels_path = os.path.join(path,
                                '%s-labels-idx1-ubyte.gz'
@@ -20,105 +23,71 @@ def load_mnist(path,data_scale, kind='train'):
     with gzip.open(images_path, 'rb') as imgpath:
         images = np.frombuffer(imgpath.read(), dtype=np.uint8,
                                offset=16).reshape(len(labels), 784)
-    # part_images=images[:data_scale]
-    # part_lables=labels[:data_scale]
+    train_num = int(data_scale * train_ratio)
 
-    return images[:data_scale], labels[:data_scale]
+    training_data_set = images[:train_num]
+    training_label_set = labels[:train_num]
+    testing_data_set = images[train_num:data_scale]
+    testing_label_set = labels[train_num:data_scale]
 
-
-def load_dataset(file_path):
-    dataMat = []
-    labelMat = []
-    fr = open(file_path)
-    for line in fr.readlines():
-        lineArr = line.strip().split()
-        dataMat.append([1.0, float(lineArr[0]), float(lineArr[1])])
-        labelMat.append(int(lineArr[2]))
-    return dataMat, labelMat
+    return training_data_set, training_label_set, testing_data_set, testing_label_set
 
 
-def train(data_arr, label_arr, n_class, iters=1000, alpha=0.1, lam=0.01):
-    '''
-    @description: softmax 训练函数
-    @param {type}
-    @return: theta 参数
-    '''
-    n_samples, n_features = data_arr.shape
-    n_classes = n_class
-    # 随机初始化权重矩阵
-    weights = np.random.rand(n_class, n_features)
-    # 定义损失结果
-    all_loss = list()
-    # 计算 one-hot 矩阵
-    y_one_hot = one_hot(label_arr, n_samples, n_classes)
-    for i in range(iters):
-        # 计算 m * k 的分数矩阵
-        scores = np.dot(data_arr, weights.T)
-        # 计算 softmax 的值
-        probs = softmax(scores)
-        # 计算损失函数值
-        loss = - (1.0 / n_samples) * np.sum(y_one_hot * np.log(probs))
-        all_loss.append(loss)
-        # 求解梯度
-        dw = -(1.0 / n_samples) * np.dot((y_one_hot - probs).T, data_arr) + lam * weights
-        dw[:, 0] = dw[:, 0] - lam * weights[:, 0]
-        # 更新权重矩阵
-        weights = weights - alpha * dw
-    return weights, all_loss
+def convert_to_one_hot(label_set, num_classes):
+    return np.eye(num_classes)[label_set]
 
 
-def softmax(scores):
-    # 计算总和
-    sum_exp = np.sum(np.exp(scores), axis=1, keepdims=True)
-    softmax = np.exp(scores) / sum_exp
-    return softmax
+class Net_work():
+    def __init__(self, num_of_weights,num_of_feature):
+        np.random.seed(0)
+        self.w = np.random.randn(num_of_weights,num_of_feature)
+        self.b = 0.
+
+    def forward(self, x):
+        z = np.dot(x, self.w) + self.b
+        return self.activating_function(z)
+
+    def activating_function(self, z):
+        # softmax函数
+        exp_sum = np.sum(np.exp(z))
+        return np.exp(z) / exp_sum
+
+    def loss(self, z, y):
+        epsilon = 1e-10
+        return -1.0 * (1.0 / y.size) * np.sum(y * np.log(z + epsilon))
+
+    def gradient(self, x, y):
+        z = self.forward(x)
+        gradient_w = np.dot((z - y).T,x )
+        gradient_w = np.mean(gradient_w, axis=0)
+        gradient_w = gradient_w[:, np.newaxis]
+        gradient_b = (z - y)
+        gradient_b = np.mean(gradient_b)
+        return gradient_w, gradient_b
+
+    def update(self, gradient_w, gradient_b, eta):
+        self.w = self.w - eta * gradient_w
+        self.b = self.b - eta * gradient_b
+
+    def train(self, x, y, num_of_iteration, eta):
+        losses = []
+        for i in range(num_of_iteration):
+            z = self.forward(x)
+            L = self.loss(z, y)
+            gradient_w, gradient_b = self.gradient(x, y)
+            self.update(gradient_w, gradient_b, eta)
+            losses.append(L)
+            if (i + 1) % 10 == 0:
+                print('iter {}, loss{}'.format(i, L))
+        return losses
 
 
-def one_hot(label_arr, n_samples, n_classes):
-    one_hot = np.zeros((n_samples, n_classes))
-    one_hot[np.arange(n_samples), label_arr.T] = 1
-    return one_hot
-
-
-def predict(test_dataset, label_arr, weights):
-    scores = np.dot(test_dataset, weights.T)
-    probs = softmax(scores)
-    return np.argmax(probs, axis=1).reshape((-1, 1))
-
-
-if __name__ == "__main__":
-    scale=100
-    data_arr, label_arr = load_mnist('../fashion-mnist', scale,kind='train')
-    test_data_arr, test_label_arr = load_mnist('../fashion-mnist',scale, kind='t10k')
-
-
-    # gen_dataset()
-    #data_arr, label_arr = load_dataset('train_dataset.txt')
-    data_arr = np.array(data_arr)
-    label_arr = np.array(label_arr).reshape((-1, 1))
-    weights, all_loss = train(data_arr, label_arr, n_class=10)
-
-    # 计算预测的准确率
-    #test_data_arr, test_label_arr = load_dataset('test_dataset.txt')
-    test_data_arr = np.array(test_data_arr)
-    test_label_arr = np.array(test_label_arr).reshape((-1, 1))
-    n_test_samples = test_data_arr.shape[0]
-    y_predict = predict(test_data_arr, test_label_arr, weights)
-    accuray = np.sum(y_predict == test_label_arr) / n_test_samples
-    print("准确率: ",accuray)
-
-    # 绘制损失函数
-    fig = plt.figure(figsize=(8, 5))
-    plt.xlim((-10, 10))
-    plt.ylim((-10, 10))
-    plt.plot(np.arange(1000), all_loss)
-    # for i in range(len(all_loss)):
-    #     print([all_loss[i]])
-    plt.title("Development of loss during training")
-    plt.xlabel("Number of iterations")
-    plt.ylabel("Loss")
-    plt.show()
+(train_set, train_label_set,
+ test_set, test_label_set) = load_mnist('../fashion-mnist', 1000, 0.8)
 
 
 
-
+train_label_one_hot = convert_to_one_hot(train_label_set,10)
+test_label_one_hot = convert_to_one_hot(test_label_set,10)
+net = Net_work(train_set.shape[1],10)
+net.train(train_set, train_label_one_hot, 1000, 0.01)

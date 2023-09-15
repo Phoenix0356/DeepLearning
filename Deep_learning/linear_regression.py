@@ -46,7 +46,7 @@ def load_data():
     return training_data, test_data
 
 
-class Network(object):
+class Network:
     def __init__(self, num_of_weights):
         # 随即产生w的初始值
         # seed(0)表示设置了随机种子，保证程序每次运行结果的一致性

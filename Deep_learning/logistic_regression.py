@@ -36,7 +36,7 @@ def load_data():
     return train_set, test_set
 
 
-class Network(object):
+class Network:
     def __init__(self, num_of_weights):
         np.random.seed(0)
         self.w = np.random.randn(num_of_weights, 1)
