@@ -3,35 +3,61 @@
 import os
 import gzip
 import numpy as np
-
+import pandas as pd
 import matplotlib.pyplot as plt
+import util
 
 
-def load_mnist(path, data_scale, train_ratio, kind='train'):
-    """Load MNIST data from `path`"""
-    labels_path = os.path.join(path,
-                               '%s-labels-idx1-ubyte.gz'
-                               % kind)
-    images_path = os.path.join(path,
-                               '%s-images-idx3-ubyte.gz'
-                               % kind)
 
-    with gzip.open(labels_path, 'rb') as lbpath:
-        labels = np.frombuffer(lbpath.read(), dtype=np.uint8,
-                               offset=8)
 
-    with gzip.open(images_path, 'rb') as imgpath:
-        images = np.frombuffer(imgpath.read(), dtype=np.uint8,
-                               offset=16).reshape(len(labels), 784)
-    train_num = int(data_scale * train_ratio)
+# def load_mnist(path, data_scale, train_ratio, kind='train'):
+#     """Load MNIST data from `path`"""
+#     labels_path = os.path.join(path,
+#                                '%s-labels-idx1-ubyte.gz'
+#                                % kind)
+#     images_path = os.path.join(path,
+#                                '%s-images-idx3-ubyte.gz'
+#                                % kind)
+#
+#     with gzip.open(labels_path, 'rb') as lbpath:
+#         labels = np.frombuffer(lbpath.read(), dtype=np.uint8,
+#                                offset=8)
+#
+#     with gzip.open(images_path, 'rb') as imgpath:
+#         images = np.frombuffer(imgpath.read(), dtype=np.uint8,
+#                                offset=16).reshape(len(labels), 784)
+#     train_num = int(data_scale * train_ratio)
+#
+#     training_data_set = images[:train_num]
+#     training_label_set = labels[:train_num]
+#     testing_data_set = images[train_num:data_scale]
+#     testing_label_set = labels[train_num:data_scale]
+#
+#     return training_data_set, training_label_set, testing_data_set, testing_label_set
 
-    training_data_set = images[:train_num]
-    training_label_set = labels[:train_num]
-    testing_data_set = images[train_num:data_scale]
-    testing_label_set = labels[train_num:data_scale]
+def load_data(path):
+    #Social_Network_Ads.csv
+    df = pd.read_csv(path,
+                     #converters={'Gender': gender_converter},
+                     dtype=np.float32
+                     )
+    #df = df.iloc[:, 1:]
+    df = df.dropna()
+    data = df.to_numpy()
 
-    return training_data_set, training_label_set, testing_data_set, testing_label_set
+    train_ratio = 0.8
+    offset = int(train_ratio * data.shape[0])
+    train_set = data[:offset]
 
+    maximums, minimums = train_set[:,:-1].max(axis=0), train_set[:,:-1].min(axis=0)
+
+    for i in range(train_set.shape[1]-1):
+        data[:, i] = (data[:, i] - minimums[i]) / (maximums[i] - minimums[i])
+
+    train_set = data[:offset]
+    test_set = data[offset:]
+
+    return train_set ,test_set
 
 def convert_to_one_hot(label_set, num_classes):
     return np.eye(num_classes)[label_set]
@@ -49,16 +75,16 @@ class Net_work():
 
     def activating_function(self, z):
         # softmax函数
-        exp_sum = np.sum(np.exp(z))
+        z -= np.max(z, axis=1, keepdims=True)
+        exp_sum = np.sum(np.exp(z), axis=1, keepdims=True)
         return np.exp(z) / exp_sum
 
     def loss(self, z, y):
-        epsilon = 1e-10
-        return -1.0 * (1.0 / y.size) * np.sum(y * np.log(z + epsilon))
+        return -1.0 * (1.0 / y.size) * np.sum(y * np.log(z))
 
     def gradient(self, x, y):
         z = self.forward(x)
-        gradient_w = np.dot((z - y).T,x )
+        gradient_w = np.dot((z - y).T,x )/y.size
         gradient_w = np.mean(gradient_w, axis=0)
         gradient_w = gradient_w[:, np.newaxis]
         gradient_b = (z - y)
@@ -82,12 +108,16 @@ class Net_work():
         return losses
 
 
-(train_set, train_label_set,
- test_set, test_label_set) = load_mnist('../fashion-mnist', 1000, 0.8)
+# (train_set, train_label_set,
+#  test_set, test_label_set) = load_mnist('../fashion-mnist', 1000, 0.8)
 
+if __name__ == '__main__':
+    train_set,test_set=load_data('D:/MyDataSet/softmax_regression/flag.csv')
+    train_label_one_hot = convert_to_one_hot(train_set[:,-1:].astype(int).reshape(-1),3)
+    net = Net_work(train_set.shape[1],3)
+    losses=net.train(train_set, train_label_one_hot, 2000, 0.01)
 
+    predictions = net.forward(test_set)
+    predicted_classes = np.argmax(predictions, axis=1)
 
-train_label_one_hot = convert_to_one_hot(train_label_set,10)
-test_label_one_hot = convert_to_one_hot(test_label_set,10)
-net = Net_work(train_set.shape[1],10)
-net.train(train_set, train_label_one_hot, 1000, 0.01)
+    util.draw_plot(test_set,predicted_classes,20,losses)

@@ -7,6 +7,7 @@ def draw_plot(test_data,predictions,dot_num,losses):
     y_true = [test_data[i][-1] for i in range(0, len_data, dot_distant)]
     y_prediction = [predictions[i] for i in range(0, len_data, dot_distant)]
 
+
     fig, axs = plt.subplots(1, 2)
     axs[0].set_title('fit result plot')
     axs[1].set_title('gradient descent plot ')

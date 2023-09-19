@@ -12,9 +12,9 @@ import util
 #         return 0
 
 
-def load_data():
+def load_data(path):
     #Social_Network_Ads.csv
-    df = pd.read_csv('D:/MyDataSet/logistic_regression/framingham.csv',
+    df = pd.read_csv(path,
                      #converters={'Gender': gender_converter},
                      dtype=np.float32)
     #df = df.iloc[:, 1:]
@@ -82,7 +82,7 @@ class Network:
 
 
 if __name__ == '__main__':
-    train_set, test_set = load_data()
+    train_set, test_set = load_data('D:/MyDataSet/logistic_regression/framingham.csv')
     x=train_set[:,:-1]
     y=train_set[:,-1:]
 
