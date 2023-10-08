@@ -36,7 +36,7 @@ def load_data(path):
     return train_set, test_set
 
 
-class Network:
+class logistic_layer:
     def __init__(self, num_of_weights):
         np.random.seed(0)
         self.w = np.random.randn(num_of_weights, 1)
@@ -86,7 +86,7 @@ if __name__ == '__main__':
     x=train_set[:,:-1]
     y=train_set[:,-1:]
 
-    net=Network(x.shape[1])
+    net=logistic_layer(x.shape[1])
     num_iterations=10000
 
     losses=net.train(x,y,num_iterations,0.08)

@@ -63,7 +63,7 @@ def convert_to_one_hot(label_set, num_classes):
     return np.eye(num_classes)[label_set]
 
 
-class Net_work():
+class softmax_layer():
     def __init__(self, num_of_weights,num_of_feature):
         np.random.seed(0)
         self.w = np.random.randn(num_of_weights,num_of_feature)
@@ -114,7 +114,7 @@ class Net_work():
 if __name__ == '__main__':
     train_set,test_set=load_data('D:/MyDataSet/softmax_regression/flag.csv')
     train_label_one_hot = convert_to_one_hot(train_set[:,-1:].astype(int).reshape(-1),3)
-    net = Net_work(train_set.shape[1],3)
+    net = softmax_layer(train_set.shape[1],3)
     losses=net.train(train_set, train_label_one_hot, 2000, 0.01)
 
     predictions = net.forward(test_set)

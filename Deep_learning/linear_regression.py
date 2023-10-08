@@ -46,7 +46,7 @@ def load_data():
     return training_data, test_data
 
 
-class Network:
+class linear_layer:
     def __init__(self, num_of_weights):
         # 随即产生w的初始值
         # seed(0)表示设置了随机种子，保证程序每次运行结果的一致性
@@ -130,7 +130,7 @@ if __name__ == '__main__':
     y = training_data[:, -1:]
 
 
-    net = Network(x.shape[1])
+    net =linear_layer(x.shape[1])
     num_iterations = 5000
 
     losses = net.train(x, y, iterations=num_iterations)
