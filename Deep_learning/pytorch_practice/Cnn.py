@@ -6,6 +6,7 @@ import torch.optim as optim
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
+import Util
 import numpy as np
 
 class Linear_model(nn.Module):
@@ -64,6 +65,9 @@ for epoch in range(epochs):
         loss.backward()
         #更新参数
         optimizer.step()
+
+trained_model={'model':model.state_dict(),'optimizer':optimizer.state_dict()}
+Util.save_model(trained_model,"Cnn_model.pth.tar")
 
 def check_accuracy(loader,model):
     if loader.dataset.train:
