@@ -35,36 +35,8 @@ class LeNet(nn.Module):
         x=self.linear2(x)
         return x
 
-def train(ep,training_loader):
-    for epoch in range(ep):
-        for batch_size,(data,targets) in enumerate(training_loader):
 
-            # data=data.reshape(data.shape[0],-1)
-            #前向传播
-            score=model(data)
-            loss=criterion(score,targets)
-            #反向传播
-            optimizer.zero_grad()
-            loss.backward()
-            #更新参数
-            optimizer.step()
 
-def check_accuracy(loader, model):
-    if loader.dataset.train:
-        print("checking accuracy on training data")
-    else:
-        print("checking accuracy on test data")
-    num_correct = 0
-    num_samples = 0
-    model.eval()
-    with torch.no_grad():
-        for x, y in loader:
-            scores = model(x)
-            _, predictions = scores.max(1)
-            num_correct += (predictions == y).sum()
-            num_samples += predictions.shape[0]
-        print("Accuracy:{}%".format(num_correct / num_samples * 100))
-    model.train()
 
 
 if __name__ == "__main__":
@@ -79,16 +51,13 @@ if __name__ == "__main__":
     test_loader=DataLoader(dataset=test_set,batch_size=batch_size,shuffle=True)
     #load model
     model = LeNet()
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+
     model_loaded=Util.load_model("D:\PythonProject\DeepLearning\Deep_learning\Models\LeNet_model.pth.tar",model)
-    if not model_loaded:
-        print("model not find, a model is under training")
-        criterion=nn.CrossEntropyLoss()
-        optimizer=optim.Adam(model.parameters(),lr=learning_rate)
 
-        train(epochs,train_loader)
+    Util.model_training(model_loaded,train_loader,model,criterion=criterion,optimizer=optimizer,epochs=epochs,
+                        model_name="LeNet_model.pth.tar")
 
-        trained_model={'model':model.state_dict(),'optimizer':optimizer.state_dict()}
-        Util.save_model(trained_model,'LeNet_model.pth.tar')
-    else:print("model is successfully loaded")
-    check_accuracy(train_loader,model)
-    check_accuracy(test_loader,model)
+    Util.check_accuracy(train_loader,model)
+    Util.check_accuracy(test_loader,model)

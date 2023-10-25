@@ -9,6 +9,13 @@ from torch.utils.data import DataLoader
 import Util
 import numpy as np
 
+device=torch.device("cpu")
+
+data_size=784
+class_num=10
+learning_rate=0.001
+batch_size=64
+epochs=1
 class Linear_model(nn.Module):
     def __init__(self,input_size,class_nums):
         super(Linear_model,self).__init__()
@@ -36,59 +43,22 @@ class CNN(nn.Module):
         return x
 
 
-device=torch.device("cpu")
 
-data_size=784
-class_num=10
-learning_rate=0.001
-batch_size=64
-epochs=1
+if __name__=="__main__":
+    train_set=datasets.MNIST(root='D:/MyDataSet/cnn',train=True,transform=transforms.ToTensor(),download=True)
+    train_loader=DataLoader(dataset=train_set,batch_size=batch_size,shuffle=True)
+    test_set=datasets.MNIST(root='D:/MyDataSet/cnn',train=False,transform=transforms.ToTensor(),download=True)
+    test_loader=DataLoader(dataset=test_set,batch_size=batch_size,shuffle=True)
 
-train_set=datasets.MNIST(root='D:/MyDataSet/cnn',train=True,transform=transforms.ToTensor(),download=True)
-train_loader=DataLoader(dataset=train_set,batch_size=batch_size,shuffle=True)
-test_set=datasets.MNIST(root='D:/MyDataSet/cnn',train=False,transform=transforms.ToTensor(),download=True)
-test_loader=DataLoader(dataset=test_set,batch_size=batch_size,shuffle=True)
+    model = CNN()
+    criterion=nn.CrossEntropyLoss()
+    optimizer=optim.Adam(model.parameters(),lr=learning_rate)
 
-model = CNN().to(device)
+    model_loaded=Util.load_model("D:\PythonProject\DeepLearning\Deep_learning\Models\Cnn_model.pth.tar",model)
+    Util.model_training(model_loaded,train_loader,model,criterion,optimizer,epochs,"Cnn_model.pth.tar")
 
-criterion=nn.CrossEntropyLoss()
-optimizer=optim.Adam(model.parameters(),lr=learning_rate)
-
-for epoch in range(epochs):
-    for batch_size,(data,targets) in enumerate(train_loader):
-        # data=data.reshape(data.shape[0],-1)
-        #前向传播
-        score=model(data)
-        loss=criterion(score,targets)
-        #反向传播
-        optimizer.zero_grad()
-        loss.backward()
-        #更新参数
-        optimizer.step()
-
-trained_model={'model':model.state_dict(),'optimizer':optimizer.state_dict()}
-Util.save_model(trained_model,"Cnn_model.pth.tar")
-
-def check_accuracy(loader,model):
-    if loader.dataset.train:
-        print("checking accuracy on training data")
-    else:
-        print("checking accuracy on test data")
-    num_correct=0
-    num_samples=0
-    model.eval()
-    with torch.no_grad():
-        for x,y in loader:
-            # x=x.reshape(x.shape[0],-1)
-            scores=model(x)
-            _,predictions=scores.max(1)
-            num_correct+=(predictions==y).sum()
-            num_samples+=predictions.shape[0]
-        print("Accuracy:{}%".format(num_correct/num_samples*100))
-    model.train()
-
-check_accuracy(train_loader,model)
-check_accuracy(test_loader,model)
+    Util.check_accuracy(train_loader,model)
+    Util.check_accuracy(test_loader,model)
 
 
 
