@@ -1,6 +1,6 @@
 import cv2
 import time
-from estimator import PoseDetector
+from detector import PoseDetector
 
 if __name__ == "__main__":
     cap = cv2.VideoCapture("D:/DeepLearning/videos/kunkun.mp4")
