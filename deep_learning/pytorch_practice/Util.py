@@ -1,7 +1,7 @@
 import torch
 import os
 
-abs_dir="D:/PythonProject/DeepLearning/Deep_learning/Models/"
+abs_dir= "/deep_learning/Models/"
 class Util():
     @staticmethod
     def save_model(model, filename):

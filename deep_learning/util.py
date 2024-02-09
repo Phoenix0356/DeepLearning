@@ -12,7 +12,7 @@ def draw_plot(test_data,predictions,dot_num,losses):
     axs[0].set_title('fit result plot')
     axs[1].set_title('gradient descent plot ')
 
-    # 在第一个子图中绘制散点图和折线图
+
     axs[0].scatter(x, y_true, color='red')
     axs[0].plot(x, y_true, color='red')
 
